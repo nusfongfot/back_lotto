@@ -1,0 +1,130 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  user     String @unique
+  password String
+  level    String
+  email    String @unique
+  phone    String
+  Cart     Cart[]
+}
+
+model Company {
+  id      Int    @id @default(autoincrement())
+  name    String
+  address String
+  phone   String
+}
+
+model Lotto {
+  id             Int              @id @default(autoincrement())
+  number         String
+  roundNumber    Int
+  bookNumber     Int
+  cost           Int
+  sale           Int
+  BillSaleDetail BillSaleDetail[]
+  Cart           Cart[]
+  isCheckBonus   Boolean          @default(false)
+  isInStock      Boolean          @default(true)
+  LottoIsBonus   LottoIsBonus[]
+  createdAt      DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime?        @updatedAt @db.Timestamptz(6)
+}
+
+model BillSale {
+  id                Int               @id @default(autoincrement())
+  payDate           DateTime?
+  customerName      String
+  customerPhone     String
+  customerAddress   String?
+  createdAt         DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime          @updatedAt @db.Timestamptz(6)
+  BillSaleDetail    BillSaleDetail[]
+  payTime           String?
+  payRemark         String?
+  payAlertDate      DateTime?
+  BillSaleForSend   BillSaleForSend[]
+  transferMoneyDate DateTime?
+  transferMoneyTime String?
+  deliveryDate      DateTime?
+  price             Int?
+}
+
+model BillSaleDetail {
+  id                  Int                   @id @default(autoincrement())
+  billSaleId          Int
+  billSale            BillSale              @relation(fields: [billSaleId], references: [id])
+  lottoId             Int
+  lotto               Lotto                 @relation(fields: [lottoId], references: [id])
+  BillSaleDetailBonus BillSaleDetailBonus[]
+}
+
+model BillSaleDetailBonus {
+  id               Int            @id @default(autoincrement())
+  billSaleDetailId Int
+  billSaleDetail   BillSaleDetail @relation(fields: [billSaleDetailId], references: [id])
+  bonusPrice       Int
+  bonusDate        DateTime
+  bonusName        String?
+  number           String
+}
+
+model Cart {
+  id      Int   @id @default(autoincrement())
+  userId  Int
+  user    User  @relation(fields: [userId], references: [id])
+  lottoId Int
+  lotto   Lotto @relation(fields: [lottoId], references: [id])
+}
+
+model BillSaleForSend {
+  id           Int      @id @default(autoincrement())
+  billSaleId   Int
+  billSale     BillSale @relation(fields: [billSaleId], references: [id])
+  sender       String?
+  sendDate     DateTime
+  sendTime     String
+  trackCode    String
+  sendPlatform String
+  remark       String?
+  shippingCost Int
+}
+
+model BonusResultDetail {
+  id           Int            @id @default(autoincrement())
+  number       String
+  price        Int
+  bonusDate    DateTime
+  priceName    String?
+  LottoIsBonus LottoIsBonus[]
+}
+
+model LottoIsBonus {
+  id                  Int               @id @default(autoincrement())
+  bonusResultDetailId Int
+  bonusResultDetail   BonusResultDetail @relation(fields: [bonusResultDetailId], references: [id])
+  lottoId             Int
+  lotto               Lotto             @relation(fields: [lottoId], references: [id])
+}
+
+model Banner {
+  id   Int     @id @default(autoincrement())
+  path String?
+  url  String?
+}
